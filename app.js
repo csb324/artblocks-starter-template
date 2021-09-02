@@ -4,7 +4,9 @@ const utils = require('./utils');
 const md = require('markdown-it')();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5500;
+
+
 
 app.set('view engine', 'hbs');
 app.engine(
@@ -18,13 +20,18 @@ app.engine(
 );
 
 app.use(express.static('public'));
+app.use(express.static('dist'));
 
 app.get('/', (req, res) => {
-  const readme = md.render(utils.getReadme());
+  // const readme = md.render(utils.getReadme());
   
-  res.render('main', {
+  // res.render('main', {
+  //   ...utils.getNavAttributes(),
+  //   readme
+  // });
+  res.render('tools', {
     ...utils.getNavAttributes(),
-    readme
+    scriptName: `basic.js`
   });
 });
 

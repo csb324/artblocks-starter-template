@@ -11,7 +11,7 @@
     <script>
       // Generates a random hash and token id each time you reload, in the following format
       //let tokenData = {"hash":"0xd9134c11cd5ed9798ea0811364d63bd850c69c5d13383c9983ade39847e9ea86","tokenId":"99000000"};
-      
+      globalThis.features = {};
       function genTokenData(projectNum)
       {
           let data = {};
@@ -24,7 +24,22 @@
           data.tokenId = projectNum * 1000000 + Math.floor(Math.random() * 1000);
           return data;
       }
-      let tokenData = genTokenData(99);
+
+      if ('URLSearchParams' in window) {
+        var searchParams = new URLSearchParams(window.location.search);        
+        if (searchParams.get('hash')) {
+          globalThis.tokenData = {};
+          tokenData.hash = searchParams.get('hash');
+          tokenData.tokenId = 99 * 1000000 + Math.floor(Math.random() * 1000);
+        }
+
+        if (typeof(tokenData) == 'undefined' || tokenData.hash == null) {
+          globalThis.tokenData = genTokenData(99);
+          searchParams.set("hash", tokenData.hash);
+          window.location.search = searchParams.toString();
+        }
+      }
+
     </script>
     <script src="./js/three.min.js"></script>
     <script src="./js/p5.js"></script>
@@ -35,5 +50,7 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-  <script src="./js/pieces/{{scriptName}}"></script>
+
+  <script src="./main.js"></script>
+
 </html>

@@ -4,7 +4,9 @@
   "description": "A template to simulate the Art Blocks (artblocks.io) environment.",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js",
+    "server": "nodemon app.js",
+    "build": "webpack --watch --mode=development",
+    "start": "concurrently \"npm run server\" \"npm run build\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,9 +20,11 @@
   },
   "homepage": "https://github.com/Asupkay/Artblocks-Starter-Template#readme",
   "dependencies": {
+    "concurrently": "^6.2.1",
     "express": "^4.17.1",
     "express-handlebars": "^4.0.4",
-    "markdown-it": "^12.0.4"
+    "markdown-it": "^12.0.4",
+    "webpack": "^5.51.2"
   },
   "devDependencies": {
     "eslint": "^7.3.1",
@@ -28,6 +32,7 @@
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "nodemon": "^2.0.7",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "webpack-cli": "^4.8.0"
   }
 }
