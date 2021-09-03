@@ -13,29 +13,45 @@ globalThis.CIRCLES_LOL = 'circles';
 globalThis.SQUARES_JUMBLED = 'jumbly boys';
 globalThis.SQUIGGLES_JUMBLED = 'SQUIGGLE JUMBLES, boys!!!';
 
+globalThis.SQUARES_OUTLINE = 'square outline';
+globalThis.CIRCLES_OUTLINE = 'circle outline';
+globalThis.STROKE_WEIGHT_PIXEL = 'stroke weight';
+globalThis.CIRCLE_WEIGHT_PIXEL = 'circle - by weight';
+globalThis.ETCH_WEIGHT_PIXEL = 'etch - by weight';
 
 export const METHODS = [
-  SQUARES_AND_SQUIGGLES, 
-  SQUARES, 
-  SQUIGGLE_CROSSED, 
-  ETCHED_HORIZONTAL,
-  ETCHED,
-  DRUNK_SQUARES,
-
-  SQUARES_AND_SQUIGGLES, 
-  SQUARES, 
-  SQUIGGLE_CROSSED, 
-  ETCHED_HORIZONTAL,
-  // ETCHED_VERTICAL,
-  ETCHED,
-  DRUNK_SQUARES,
-  // copy so that squiggles-only are more rare
-  SQUIGGLES_ONLY, 
-  DRUNK_SQUIGGLES,
-
+  SQUARES,
   CIRCLES_LOL,
-  SQUARES_JUMBLED,
-  SQUIGGLES_JUMBLED
+  SQUIGGLES_ONLY,
+  SQUIGGLE_CROSSED,
+  SQUARES_OUTLINE,
+  CIRCLES_OUTLINE,
+  SQUARES_AND_SQUIGGLES,
+  ETCHED_HORIZONTAL,
+  STROKE_WEIGHT_PIXEL,
+  CIRCLE_WEIGHT_PIXEL,
+  ETCH_WEIGHT_PIXEL
+
+  // SQUARES_AND_SQUIGGLES, 
+  // , 
+  // ETCHED_HORIZONTAL,
+  // ETCHED,
+  // DRUNK_SQUARES,
+
+  // SQUARES_AND_SQUIGGLES, 
+  // SQUARES, 
+  // SQUIGGLE_CROSSED, 
+  // ETCHED_HORIZONTAL,
+  // // ETCHED_VERTICAL,
+  // ETCHED,
+  // DRUNK_SQUARES,
+  // // copy so that squiggles-only are more rare
+  // SQUIGGLES_ONLY, 
+  // DRUNK_SQUIGGLES,
+
+  // SQUARES_JUMBLED,
+  // SQUIGGLES_JUMBLED,
+  // SQUIGGLES_ONLY
 ];
 
 const faceSkeleton_DEBUG = [

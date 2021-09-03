@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
   //   ...utils.getNavAttributes(),
   //   readme
   // });
-  res.render('tools', {
+  res.render('piece-bare', {
     ...utils.getNavAttributes(),
     scriptName: `basic.js`
   });
