@@ -9,6 +9,10 @@ class Random {
     this.seed ^= this.seed << 5
     return ((this.seed < 0 ? ~this.seed + 1 : this.seed) % 1000) / 1000
   }
+
+  whatAreTheOdds(threshold) {
+    return this.random_dec() < threshold;
+  }
   random_num(a, b) {
     return a+(b-a)*this.random_dec()
   }

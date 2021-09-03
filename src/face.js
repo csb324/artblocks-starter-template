@@ -15,7 +15,7 @@ let padding, gridArea, face;
 
 const minSkew = 0.5;
 const maxSkew = 1.2;
-const defaultColor = 'rgba(255, 255, 255, 0.03)';
+const defaultColor = '#1f1f1f';
 const noiseMod = 0.5;
 
 function setFeature(k, v) {
@@ -33,12 +33,12 @@ class Face {
     this.R = new Random(u.seed);
     noiseSeed(u.seed);
 
-    this.padding = map(this.decPairs[0], 0, 255, utils.relSize(10), utils.relSize(20)); // 0 = padding
+    this.padding = map(this.decPairs[0], 0, 255, 0, utils.relSize(20)); // 0 = padding
     setFeature('padding', this.padding);
 
     this.flipped = u.whatAreTheOdds(8, 0.5);
     setFeature('flipped', this.flipped);
-    this.flipSkeleton();
+    this._flipSkeleton();
 
     const totalHeight = height - (2*this.padding);
     this.totalWidth = width - (2*this.padding);
@@ -47,65 +47,73 @@ class Face {
     this.colors = getColors(u.getFromArray(1, c.colorOptions)); // 1 = colors
     setFeature('first color', this.colors[0]);
 
-
     this.paddingMod = u.getFromArray(2, [utils.relSize(20), utils.relSize(-2), utils.relSize(2), utils.relSize(2), utils.relSize(2), utils.relSize(10)])
-    setFeature('paddingMod', this.paddingMod);
-    // 2 = the padding of the squares
+    setFeature('paddingMod', this.paddingMod);    // 2 = the padding of the squares
     this.calcOffsets();
 
-    this.background = u.whatAreTheOdds(3, 0.5) ? '#0f0f0f' : '#222222';
+    this.background = u.whatAreTheOdds(3, 0.5) ? '#0f0f0f' : '#222222'; // 3 = background
 
     this.subsegments = Math.floor(map(this.decPairs[4], 0, 255, 3, 15)); // 4 = how wiggly are the lines
     setFeature('subsegments', this.subsegments);
 
-    this.drawBackgroundBlocks = u.whatAreTheOdds(5, 0.2);
-    setFeature('bgBlocks', this.bgBlocks);
-
     this.maxRotation = u.percentMap(7)/4 + 0.05;
     setFeature('maxRotation', this.maxRotation);
-    
 
     this.drawMethod = u.getFromArray(9, c.METHODS);
     setFeature('drawMethod', this.drawMethod);
 
-    this.standardWeight = u.getFromArray(6, [utils.relSize(1), utils.relSize(2), utils.relSize(1), utils.relSize(2), utils.relSize(1), utils.relSize(2), utils.relSize(3)]);
-
+    this.standardWeight = u.getFromArray(6, [utils.relSize(2), utils.relSize(1), utils.relSize(2), utils.relSize(1), utils.relSize(2), utils.relSize(3)]);
     if(this.drawMethod == SQUIGGLES_ONLY || this.drawMethod == DRUNK_SQUIGGLES) {
-      this.standardWeight += utils.relSize(2);
+      this.standardWeight += utils.relSize(1);
     }
     strokeWeight(this.standardWeight);    
 
-    this.etchesPerBox = map(this.decPairs[10], 0, 255, 5, 15);
+
+
+    // this.setBlendMode();
+
+    this.squaresPerSquare = u.getFromArray(12, [1, 2, 3, 4, 5]);
+
+    let minEtches = 5;
+    let maxEtches = 8;
+    if(this.drawMethod == ETCHED || this.drawMethod == ETCHED_HORIZONTAL || this.drawMethod == ETCHED_VERTICAL) {
+      this.squaresPerSquare = u.getFromArray(12, [1, 2]);;
+      if (this.squaresPerSquare == 2) {
+        this.squaresPerSquare = u.getFromArray(12, [1, 2]);;
+        minEtches = 2;
+        maxEtches = 5;
+      }
+    }
+
+    this.etchesPerBox = map(this.decPairs[10], 0, 255, minEtches, maxEtches);
     setFeature('etches per box', this.etchesPerBox);
 
-    this.blendMode = u.whatAreTheOdds(11, 0.1) ? OVERLAY : BLEND;
+    this.squareSize = this.baseSquareSize / this.squaresPerSquare;
+    this.multiNoise = false;
+    this.twoDirectionNoise = false;
+    if (this.squaresPerSquare > 1) {
+      this.multiNoise = u.whatAreTheOdds(13, 0.5);
+      this.twoDirectionNoise = u.whatAreTheOdds(14, 0.5); // this won't matter if the above is false
+    }
+    this.alphaNoise = u.whatAreTheOdds(15, 0.2);
 
+    this.scrambleFactor = map(this.decPairs[16], 0, 255, 0, 1.5);
+    this.stars = u.whatAreTheOdds(17, 0.3) ? (u.percentMap(18) * u.percentMap(18)) : (false);
+    console.log(this.stars);
+  }
+
+  setBlendMode() {
+    this.blendMode = u.whatAreTheOdds(11, 0.1) ? OVERLAY : BLEND;
     if (this.blendMode == OVERLAY) {
       this.background = u.whatAreTheOdds(3, 0.5) ? '#444444' : '#666666';
     }
 
     blendMode(this.blendMode);
     setFeature('blendMode', this.blendMode);
-
-    this.squaresPerSquare = u.getFromArray(12, [3]);
-
-    if(this.drawMethod == ETCHED || this.drawMethod == ETCHED_HORIZONTAL || this.drawMethod == ETCHED_VERTICAL) {
-      this.squaresPerSquare = 1;
-    }
-    this.squareSize = this.baseSquareSize / this.squaresPerSquare;
-
-
   }
 
-  flipSkeleton() {
-    this.skeleton = c.faceSkeleton;
-
-    if (this.flipped) {
-      for (let r = 0; r < this.skeleton.length; r++) {
-        this.skeleton[r].reverse();        
-      }
-    }
-
+  setBackgroundBlocks() {
+    this.drawBackgroundBlocks = u.whatAreTheOdds(5, 0.2);
   }
 
   getColumnMod(i) {
@@ -121,10 +129,10 @@ class Face {
     const squaresTall = this.skeleton.length;
     const squaresWide = this.skeleton[0].length;
     for (let i = 0; i < squaresWide; i++) {
-      w += this.getColumnMod(i)* this.squareSize;
+      w += this.getColumnMod(i)* this.baseSquareSize;
     }
     for (let i = 0; i < squaresTall; i++) {
-      h += this.getRowMod(i)* this.squareSize;
+      h += this.getRowMod(i)* this.baseSquareSize;
     }
     w += this.paddingMod;
     h += this.paddingMod;
@@ -134,21 +142,45 @@ class Face {
     setFeature('offsetY', this.offsetY);
   }
 
+  getNoised(x, array, factor, thisDirection = true) {
+    const noiseF = this.scrambleFactor;
+    let indexx = x;
+    if(this.multiNoise && thisDirection) {
+      indexx = (noise(x, factor) - 0.5)*noiseF + x;
+      indexx = constrain(indexx, 0, array.length - 0.0001)
+    }
+    indexx = Math.floor(indexx);
+    return indexx;
+  }
+
+  jumble(colModifier, rowModifier) {
+    translate(
+      this.R.random_num(-1, 1) * colModifier * this.squareSize, 
+      this.R.random_num(-1, 1) * rowModifier * this.squareSize
+    )
+
+  }
+
   draw() {
     translate(this.offsetX, this.offsetY);
     background(this.background);
-
-
     push();
     for (let y = 0; y < this.skeleton.length; y += (1 / this.squaresPerSquare)) {
 
       let row = this.skeleton[Math.floor(y)];
-      
       const rowModifier = this.getRowMod(y);
       let amountShifted = 0;
 
       for (let x = 0; x < row.length; x += (1 / this.squaresPerSquare)) {
-        const element = row[Math.floor(x)];
+        let indexx = this.getNoised(x, row, y/2);
+        let indexy = this.getNoised(y, this.skeleton, 10 + x, this.twoDirectionNoise);
+
+        let element = this.skeleton[indexy][indexx];
+
+        if(element == 0 && this.stars && this.R.whatAreTheOdds(this.stars)) {
+          element = this.R.random_int(1, 5);
+        }
+
         const colModifier = this.getColumnMod(x);
 
         const squareWidth = colModifier * this.squareSize;
@@ -158,6 +190,20 @@ class Face {
           case SQUARES:
             this.drawSquares(element, colModifier, rowModifier);
             break;
+          case SQUARES_JUMBLED:
+            push();
+            this.jumble(colModifier, rowModifier);
+            this.drawSquares(element, colModifier, rowModifier);
+            pop();
+            break;
+
+          case SQUIGGLES_JUMBLED:
+            push();
+            this.jumble(colModifier, rowModifier);
+            this.drawSquiggle(element, colModifier, rowModifier);
+            pop();
+            break;
+
           case SQUARES_AND_SQUIGGLES:
             this.drawSquares(element, colModifier, rowModifier);
             this.drawSquiggle(element,colModifier, rowModifier);
@@ -184,6 +230,10 @@ class Face {
           case DRUNK_SQUIGGLES:
             this.drawSquiggle(element, colModifier, rowModifier, false, true);
             break;
+          case CIRCLES_LOL:
+            this.drawCircles(element, colModifier, rowModifier);
+            break;
+          // case CIRCLES_LOL:
           default:
             console.log("oh no!");
             break;
@@ -212,7 +262,7 @@ class Face {
     }
 
     noStroke();
-    const c = this.colors[element-1] || defaultColor;
+    const c = this.getAlphaColor(element);
     fill(c);
 
     push();
@@ -224,7 +274,29 @@ class Face {
     pop();
   }
 
-  getSquiggleColor(element) {
+  drawCircles(element, colModifier, rowModifier) {
+    if (!this.drawBackgroundBlocks && element == 0) {
+      return;
+    }
+
+    const c = this.colors[element-1] || defaultColor;
+    stroke(c);
+    noFill();
+    ellipse(
+      0 - this.paddingMod/2, 
+      0 - this.paddingMod/2, 
+      this.squareSize * colModifier + this.paddingMod, 
+      this.squareSize * rowModifier + this.paddingMod
+    );
+  }
+
+  getAlphaColor(element) {
+    if(element > 0 && this.alphaNoise) {
+      let c = this.colors[element-1];
+      c.setAlpha(this.R.random_num(150, 255))
+      return c;
+    }
+
     return this.colors[element-1] || defaultColor;
   }
 
@@ -232,14 +304,13 @@ class Face {
     if (!this.drawBackgroundBlocks && element == 0) {
       return;
     }
-    const c = this.getSquiggleColor(element);
+    const c = this.getAlphaColor(element);
     stroke(c);
 
     push();
     if (drunk) {
       this.getDrunk(colModifier, rowModifier);
-    }
-    
+    }    
     this.squiggleSquare(
       0, 
       0, 
@@ -259,12 +330,11 @@ class Face {
   }
 
   drawEtchedSquiggleH(element, colModifier, rowModifier) {
-
     if (!this.drawBackgroundBlocks && element == 0) {
       return;
     }
 
-    const c = this.getSquiggleColor(element);
+    const c = this.getAlphaColor(element);
     stroke(c);
 
     const h = (this.squareSize * rowModifier) + this.paddingMod;
@@ -272,8 +342,8 @@ class Face {
     const delta = h / this.etchesPerBox;
     
     for (let etch = 0; etch < h; etch+= delta) {
-      let thisDelta = delta * map(noise(etch * 0.3), 0, 1, -1, 1);
-      let startNoise = map(noise((etch + element) / 0.2, colModifier), 0, 1, -delta, delta)/2;
+      let thisDelta = delta * map(noise(etch+element * 0.3), 0, 1, -1, 1);
+      let startNoise = map(noise((etch + element) * 209,  element*colModifier), 0, 1, -delta, delta)/2;
 
       this.squiggleLine(-startNoise, etch, w+(2*startNoise), etch + thisDelta);
     }
@@ -284,7 +354,7 @@ class Face {
     if (!this.drawBackgroundBlocks && element == 0) {
       return;
     }
-    const c = this.getSquiggleColor(element);
+    const c = this.getAlphaColor(element);
     stroke(c);
 
     const h = (this.squareSize * rowModifier) + this.paddingMod;
@@ -324,13 +394,9 @@ class Face {
   squiggleLine(x1, y1, x2, y2) {
     push();
     translate(x1, y1);
-  
     let dX = x2 - x1;
     let dY = y2 - y1;
-
     let totalRotation = 0;
-
-
     for (let index = 0; index < this.subsegments; index++) {
       const thisMinR = -this.maxRotation - totalRotation;
       const thisMaxR = this.maxRotation - totalRotation;
@@ -352,6 +418,16 @@ class Face {
       this.squareSize * rowModifier + this.paddingMod
     );
   }
+
+  _flipSkeleton() {
+    this.skeleton = c.faceSkeleton;
+    if (this.flipped) {
+      for (let r = 0; r < this.skeleton.length; r++) {
+        this.skeleton[r].reverse();        
+      }
+    }
+  }
+
 }
 
 
